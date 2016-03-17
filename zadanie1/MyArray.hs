@@ -29,10 +29,9 @@ instance Ix Char where
     index (lo, hi) w = fromEnum(w) - fromEnum(lo)
 
 instance (Ix a, Ix b) => Ix (a,b) where
-    --rangeSize ((lo1, hi1), (lo2, hi2)) = rangeSize (lo1, hi1)
-    --rangeSize ((lo1, hi1),(lo2, hi2)) = rangeSize (lo1, hi1) -- * rangeSize (lo2, hi2) 
+    rangeSize ((lo1, lo2),(hi1, hi2)) = rangeSize (lo1, hi1) * rangeSize (lo2, hi2)
 
-
+main = print (rangeSize(('a', 5::Int),('z', 10::Int)))
 
 
  
