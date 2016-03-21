@@ -6,9 +6,6 @@ class Ord a => Ix a where
     --Return the a-th element inside (b,c) range of indexes.
     fromPosition :: (a,a) -> Int -> a
 
-    --Return the list of elements in range (a,b) from c inclusive
-    rangeFrom :: (a,a) -> a -> [a]
-
     --Return the list of elements in range (a,b)
     range     :: (a,a) -> [a]
 
@@ -24,7 +21,6 @@ class Ord a => Ix a where
 
 instance Ix Int where
     fromPosition (lo, _) no = lo + no
-    rangeFrom (_, hi) mid = [mid .. hi]
     range (lo, hi) = [lo .. hi]
     rangeSize (lo, hi) = hi - lo + 1
     index (lo, _) w = fromEnum w - fromEnum lo
@@ -34,7 +30,6 @@ instance Ix Int where
 
 instance Ix Integer where
     fromPosition (lo, _) no = lo + toInteger no
-    rangeFrom (_, hi) mid = [mid .. hi]
     range (lo, hi) = [lo .. hi]
     rangeSize (lo, hi) = fromIntegral(hi - lo + 1)
     index (lo, _) w = fromEnum w - fromEnum lo
@@ -44,7 +39,6 @@ instance Ix Integer where
 
 instance Ix Char where
     fromPosition (lo, _) no = toEnum (fromEnum lo + fromEnum no)
-    rangeFrom (_, hi) mid = [mid .. hi]
     range (lo, hi) = [lo .. hi]
     rangeSize (lo, hi) = fromEnum hi - fromEnum lo + 1
     index (lo, _) w = fromEnum w - fromEnum lo
@@ -60,23 +54,8 @@ instance (Ix a, Ix b) => Ix (a,b) where
           i1 = quot no r1
           i2 = no - i1 * r1
 
-    rangeFrom ((lo1, lo2), (hi1, hi2)) (mid1, mid2)
-        | imid1 == ihi1 && imid2 == ihi2 = [(mid1, mid2)]
-        | imid1 < ihi1  && imid2 == ihi2
-          = (mid1, mid2):rangeFrom ((lo1, lo2), (hi1, hi2)) (mid1n, lo2)
-        | otherwise
-          = (mid1, mid2):rangeFrom ((lo1, lo2), (hi1, hi2)) (mid1, mid2n)
-        where
-          ihi1   = rangeSize (lo1, hi1) - 1
-          ihi2   = rangeSize (lo2, hi2) - 1
-          imid1  = index (lo1, hi1) mid1
-          imid2  = index (lo2, hi2) mid2
-          mid2n  = fromPosition (lo2, hi2) (imid2 + 1)
-          mid1n  = fromPosition (lo1, hi1) (imid1 + 1)
-
-    range ((lo1, lo2), (hi1, hi2))
-      = rangeFrom ((lo1, lo2), (hi1, hi2)) (lo1, lo2)
-
+    range ((lo1, lo2), (hi1, hi2)) = [(a,b) | a <- range(lo1, hi1), b <- range(lo2, hi2)]
+    
     rangeSize ((lo1, lo2),(hi1, hi2))
       = rangeSize (lo1, hi1) * rangeSize (lo2, hi2)
 
