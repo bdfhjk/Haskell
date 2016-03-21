@@ -1,4 +1,5 @@
-module MyArray ( Array, Ix, range, rangeSize, index, inRange) where
+module MyArray ( Array, Ix, range, rangeSize, index, inRange, (!), array,
+                 listArray, listToPair, elems) where
 
 class Ord a => Ix a where
 
@@ -101,12 +102,6 @@ update      :: (Ix i, Show i, Show e) => i -> e -> Array i e -> Array i e
 listToPair  :: (Ix i, Show i, Show e) => (i, i) -> [e] -> [(i, e)]
 makeArray   :: (Ix i, Show i, Show e) => (i, i) -> Array i e
 
-{-
-instance (Show i, Show e) => Show (Array i e) where
-    show (EmptyLeaf idx) = "EmptyLeaf " ++ show idx
-    show (Leaf idx a) = "Leaf "
-    show (Root lo hi n) = "Root "
-    show (Node n1 e n2) = "Node " -}
 
 (!) (Root lo hi n) idx
     | idx >= lo && idx <= hi  = (!) n idx
@@ -136,9 +131,6 @@ update idx e (Node n1 sr n2)
     | idx <= sr   = Node (update idx e n1) sr n2
     | otherwise   = Node n1 sr (update idx e n2)
 
-update idx e (Root lo hi n)
-    | idx >= lo && idx <= hi  = Root lo hi (update idx e n)
-
 update idx e (Leaf idx_old _)
     | idx == idx_old   = Leaf idx e
     | otherwise        = error "update - incorrect index"
@@ -151,9 +143,8 @@ update idx e (EmptyLeaf idx_old)
 (//) (Root lo hi n) ((i, e):tl)
     | i >= lo && i <= hi  = (//) (Root lo hi (update i e n)) tl
     | otherwise           = error "// - incorrect index"
+(//) _ _ = error "// - used on non-root node"
 
-(//) x y = error (show x)
---(//) (n1) _ = n1
 
 listToPair (_, _) [] = []
 listToPair (lo, hi) (h:tl)
@@ -173,8 +164,3 @@ elems (Root _ _ n)        = elems n
 elems (Leaf _ e)          = [e]
 elems (EmptyLeaf _)       = []
 elems (Node a1 _ a2)      = elems a1 ++ elems a2
-
-main :: IO()
-main = do
-       print (rangeSize(('a', ('a', 5::Int)),('z',('z',10::Int))))
-       print (range(('a', ('a', 1::Int)),('c',('b', 2::Int))))
