@@ -1,5 +1,5 @@
-module MyArray ( Array, Ix, range, rangeSize, index, inRange, (!), array,
-                 listArray, listToPair, elems) where
+module MyArray ( Array, Ix, range, rangeSize, index, inRange,
+                 listArray, (!), elems, array, update, (//)) where
 
 class Ord a => Ix a where
 
@@ -93,15 +93,15 @@ data Array i e = Leaf i e | EmptyLeaf i
                 | Node (Array i e) i (Array i e)
                 | Root i i (Array i e)
                 deriving Show
-listArray   :: (Ix i, Show i, Show e) => (i, i) -> [e] -> Array i e
-elems       :: (Ix i, Show i, Show e) => Array i e -> [e]
-(!)         :: (Ix i, Show i, Show e) => Array i e -> i -> e
-array       :: (Ix i, Show i, Show e) => (i, i) -> [(i, e)] -> Array i e
-update      :: (Ix i, Show i, Show e) => i -> e -> Array i e -> Array i e
-(//)        :: (Ix i, Show i, Show e) => Array i e -> [(i, e)] -> Array i e
-listToPair  :: (Ix i, Show i, Show e) => (i, i) -> [e] -> [(i, e)]
-makeArray   :: (Ix i, Show i, Show e) => (i, i) -> Array i e
 
+listArray   :: Ix i => (i, i) -> [e] -> Array i e
+elems       :: Ix i => Array i e -> [e]
+(!)         :: Ix i => Array i e -> i -> e
+array       :: Ix i => (i, i) -> [(i, e)] -> Array i e
+update      :: Ix i => i -> e -> Array i e -> Array i e
+(//)        :: Ix i => Array i e -> [(i, e)] -> Array i e
+listToPair  :: Ix i => (i, i) -> [e] -> [(i, e)]
+makeArray   :: Ix i => (i, i) -> Array i e
 
 (!) (Root lo hi n) idx
     | idx >= lo && idx <= hi  = (!) n idx
@@ -118,10 +118,10 @@ makeArray   :: (Ix i, Show i, Show e) => (i, i) -> Array i e
 (!) (EmptyLeaf _) _       = undefined
 
 array (lo, hi) =
-    (//) (makeArray (lo, hi))
+    (//) (Root lo hi (makeArray (lo, hi)))
 
 listArray  (lo, hi) l =
-    Root lo hi ((//) (makeArray (lo, hi)) (listToPair (lo, hi) l))
+    (//) (Root lo hi (makeArray (lo, hi))) (listToPair (lo, hi) l)
 
 update idx e (Root lo hi n)
     | idx >= lo && idx <= hi  = Root lo hi (update idx e n)
