@@ -76,7 +76,7 @@ instance (Ix a, Ix b) => Ix (a,b) where
     inRange ((lo1, lo2), (hi1, hi2)) (mid1, mid2) =
       inRange (lo1, hi1) mid1 && inRange (lo2, hi2) mid2
 
-data Array i e = Leaf i e | EmptyLeaf i
+data Array i e = Leaf i e | EmptyLeaf
                 | Node (Array i e) i (Array i e)
                 | Root i i (Array i e)
                 deriving Show
@@ -102,30 +102,30 @@ makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
     | idx_old == idx    = e
     | otherwise         = error "! - incorrect index"
 
-(!) (EmptyLeaf _) _       = undefined
+(!) (EmptyLeaf) _       = undefined
 
 array (lo, hi) l
     |   correct (lo, hi)    =   (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) l
-    |   otherwise        =   Root lo hi (EmptyLeaf lo)
+    |   otherwise        =   Root lo hi EmptyLeaf
 
 listArray  (lo, hi) l
     |   correct (lo, hi)
         =  (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) (listToPair (lo, hi) l)
-    |   otherwise   =   Root lo hi (EmptyLeaf hi)
+    |   otherwise   =   Root lo hi EmptyLeaf
 
 update idx e (Root lo hi n)
     | inRange (lo, hi) idx       = Root lo hi (update idx e n)
-    | otherwise               = error "update - incorrect index"
+    | otherwise                  = error "update - incorrect index"
 
 update idx e (Node n1 sr n2)
     | idx <= sr   = Node (update idx e n1) sr n2
     | otherwise   = Node n1 sr (update idx e n2)
 
-update idx e (Leaf idx_old _) = Leaf idx e
+update idx e (Leaf _ _) = Leaf idx e
 --    | idx == idx_old
 --    | otherwise        = error "update - incorrect index"
 
-update idx e (EmptyLeaf idx_old) = Leaf idx e
+update idx e EmptyLeaf  = Leaf idx e
 
 (//) (Root lo hi n) [] = Root lo hi n
 (//) (Root lo hi n) ((i, e):tl)
@@ -134,7 +134,7 @@ update idx e (EmptyLeaf idx_old) = Leaf idx e
 (//) _ _ = error "// - used on non-root node"
 
 
-listToPairR (_, _) [] idx = []
+listToPairR (_, _) [] _ = []
 
 listToPairR (lo, hi) (h:tl) idx
     | idx == rangeSize (lo, hi)    = []
@@ -144,20 +144,23 @@ listToPairR (lo, hi) (h:tl) idx
 
 listToPair (lo, hi) l = listToPairR (lo, hi) l 0
 
-makeArray (loi, hii) (lo, hi)
-    | lo == hi           = EmptyLeaf lo
-    | correct (lo, hi)
-        = Node (makeArray (loi, hii) (lo, sr))
+makeArray (tree_lo, tree_hi) (lo, hi)
+    | lo == hi           = EmptyLeaf
+    | lo == sr           = Node EmptyLeaf sr
+                (makeArray (tree_lo, tree_hi) (sr_next, hi))
+    | sr_next == hi      = Node (makeArray (tree_lo, tree_hi) (lo, sr)) sr
+                           EmptyLeaf
+    | otherwise = Node (makeArray (tree_lo, tree_hi) (lo, sr))
                 sr
-               (makeArray (loi, hii) (srn, hi))
-    | otherwise          = EmptyLeaf hi
+               (makeArray (tree_lo, tree_hi) (sr_next, hi))
+  --  | otherwise          = error "Incorrect make-array argument "
     where
-      lo_idx = index (loi, hii) lo
-      hi_idx = index (loi, hii) hi
-      sr  = fromPosition (loi, hii) ((quot (hi_idx + lo_idx) 2))
-      srn = fromPosition (loi, hii) ((quot (hi_idx + lo_idx) 2)+1)
+      lo_idx = index (tree_lo, tree_hi) lo
+      hi_idx = index (tree_lo, tree_hi) hi
+      sr      = fromPosition (tree_lo, tree_hi) (quot (hi_idx + lo_idx) 2)
+      sr_next = fromPosition (tree_lo, tree_hi) (quot (hi_idx + lo_idx) 2 +1)
 
 elems (Root _ _ n)        = elems n
 elems (Leaf _ e)          = [e]
-elems (EmptyLeaf _)       = []
+elems (EmptyLeaf)       = []
 elems (Node a1 _ a2)      = elems a1 ++ elems a2
