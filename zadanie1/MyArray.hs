@@ -107,7 +107,7 @@ makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
 
 (!) (Root lo hi n) idx
     | inRange (lo, hi) idx  = (!) n idx
-    | otherwise         = error "! - incorrect index"
+    | otherwise             = error "! - incorrect index"
 
 (!) (Node n1 i n2) idx
     | idx <= i    = (!) n1 idx
