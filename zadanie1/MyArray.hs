@@ -2,23 +2,23 @@ module MyArray ( Array, Ix, range, rangeSize, index, inRange,
                  listArray, (!), elems, array, update, (//)) where
 
 class Ord a => Ix a where
+    --Check if a pair of idexes is a vaild Array range. [private]
     correct :: (a,a) -> Bool
 
-    --Return the a-th element inside (b,c) range of indexes.
+    --Return the a-th element inside (b,c) range of indexes. [private]
     fromPosition :: (a,a) -> Int -> a
 
-    --Return the list of elements in range (a,b)
+    --Return the list of elements in range (a,b).
     range     :: (a,a) -> [a]
 
-    --Get the numbers of elements in range (a, b)
+    --Get the numbers of elements in range (a, b).
     rangeSize :: (a,a) -> Int
 
-    --Get the integer position of element a in range (a,b)
+    --Get the integer position of element a in range (a,b).
     index     :: (a,a) -> a -> Int
 
-    --Check if the element a is in range (a, b)
+    --Check if the element a is in range (a, b).
     inRange   :: (a,a) -> a -> Bool
-
 
 instance Ix Int where
     correct (lo, hi) = lo <= hi
@@ -81,13 +81,28 @@ data Array i e = Leaf i e | EmptyLeaf
                 | Root i i (Array i e)
                 deriving Show
 
+--Create an Array from list of elements.
 listArray   :: Ix i => (i, i) -> [e] -> Array i e
+
+--Return a list of all elements in the Array.
 elems       :: Ix i => Array i e -> [e]
+
+--Get the element from Array, from specified position.
 (!)         :: Ix i => Array i e -> i -> e
+
+--Create an Array from list of pair (index, element).
 array       :: Ix i => (i, i) -> [(i, e)] -> Array i e
+
+--Update the Array at specified index.
 update      :: Ix i => i -> e -> Array i e -> Array i e
+
+--Update the Array at specified indexes.
 (//)        :: Ix i => Array i e -> [(i, e)] -> Array i e
-listToPair  :: Ix i => (i, i) -> [e] -> [(i, e)]
+
+--Convert list of elements to list of pairs (index, element) [private]
+listToPair  :: Ix i => (i, i) -> [e] -> Int -> [(i, e)]
+
+--Create an empty Array of selected indexes. [private]
 makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
 
 (!) (Root lo hi n) idx
@@ -105,12 +120,14 @@ makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
 (!) (EmptyLeaf) _       = undefined
 
 array (lo, hi) l
-    |   correct (lo, hi)    =   (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) l
+    |   correct (lo, hi) =   (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) l
     |   otherwise        =   Root lo hi EmptyLeaf
 
 listArray  (lo, hi) l
     |   correct (lo, hi)
-        =  (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) (listToPair (lo, hi) l)
+        =  (//) (Root lo hi
+                (makeArray (lo, hi) (lo, hi)))
+                (listToPair (lo, hi) l 0)
     |   otherwise   =   Root lo hi EmptyLeaf
 
 update idx e (Root lo hi n)
@@ -122,27 +139,24 @@ update idx e (Node n1 sr n2)
     | otherwise   = Node n1 sr (update idx e n2)
 
 update idx e (Leaf _ _) = Leaf idx e
---    | idx == idx_old
---    | otherwise        = error "update - incorrect index"
 
 update idx e EmptyLeaf  = Leaf idx e
 
 (//) (Root lo hi n) [] = Root lo hi n
+
 (//) (Root lo hi n) ((i, e):tl)
     | inRange (lo, hi) i     = (//) (Root lo hi (update i e n)) tl
     | otherwise              = Root lo hi n
-(//) _ _ = error "// - used on non-root node"
 
+(//) _ _ = error "// - used on a no-root node"
 
-listToPairR (_, _) [] _ = []
+listToPair (_, _) [] _ = []
 
-listToPairR (lo, hi) (h:tl) idx
+listToPair (lo, hi) (h:tl) idx
     | idx == rangeSize (lo, hi)    = []
-    | otherwise   =  (i, h) : listToPairR (lo, hi) tl (idx+1)
+    | otherwise   =  (i, h) : listToPair (lo, hi) tl (idx+1)
     where
         i = fromPosition (lo, hi) idx
-
-listToPair (lo, hi) l = listToPairR (lo, hi) l 0
 
 makeArray (tree_lo, tree_hi) (lo, hi)
     | lo == hi           = EmptyLeaf
@@ -153,7 +167,6 @@ makeArray (tree_lo, tree_hi) (lo, hi)
     | otherwise = Node (makeArray (tree_lo, tree_hi) (lo, sr))
                 sr
                (makeArray (tree_lo, tree_hi) (sr_next, hi))
-  --  | otherwise          = error "Incorrect make-array argument "
     where
       lo_idx = index (tree_lo, tree_hi) lo
       hi_idx = index (tree_lo, tree_hi) hi
