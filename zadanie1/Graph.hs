@@ -1,9 +1,9 @@
 module Graph(Graph, createGraph, addNeighbor, getNeighbors, getRoute) where
 import MyArray
 import Data.List
+import Data.Set
 
 type Graph   = Array Int [Int]
-type Visited = Array Int Bool
 
 -- |Create a graph with specified range of vertices.
 createGraph  :: (Int, Int) -> [(Int, [Int])]-> Graph
@@ -20,16 +20,16 @@ getRoute     :: Graph -> Int -> Int -> Int -> [Int] -> [Int]
 -- |Perform BFS algorithm over the graph and return visited nodes
 -- |First list is a list of visited previously nodes
 -- |Second list is a list of nodes in queue to be processed
-bfs :: Graph -> Visited -> [Int] -> [Int] -> [Int]
+bfs :: Graph -> Set Int -> [Int] -> [Int] -> [Int]
 
 -- |Mark list of vertices as visited in an array
-mark :: Visited -> [Int] -> Visited
+mark :: Set Int -> [Int] -> Set Int
 
 -- |Process list and return only non-visited vertices
-addN :: Visited -> [Int] -> [Int] -> [Int]
+addN :: Set Int -> [Int] -> [Int] -> [Int]
 
 
-createGraph (lo, hi) l = array (lo, hi) l
+createGraph (lo, hi) = array (lo, hi)
 
 addNeighbor g w1 w2 = update w1 l2 g
   where
@@ -37,10 +37,9 @@ addNeighbor g w1 w2 = update w1 l2 g
 
 getNeighbors g w = g ! w
 
-getRoute g lo hi w l = sort (bfs g v1 [] [w])
+getRoute g _ _ w _ = sort (bfs g v [] [w])
   where
-    v1 = update 1 True v
-    v  = array (lo, hi) (zip l (replicate maxBound False))
+    v  = fromList [1]
 
 bfs _ _ p []      = p
 bfs g v p (h:tl)  = bfs g (mark v nbs) (h:p) (tl ++ addN v [] nbs)
@@ -48,9 +47,9 @@ bfs g v p (h:tl)  = bfs g (mark v nbs) (h:p) (tl ++ addN v [] nbs)
         nbs = getNeighbors g h
 
 mark v []      = v
-mark v (h:nbs) = mark (update h True v) nbs
+mark v (h:nbs) = mark (Data.Set.insert h v) nbs
 
 addN _ p []      = p
-addN v p (h:tl)  = if v ! h
+addN v p (h:tl)  = if member h v
                   then addN v p tl
                   else addN v (h:p) tl
