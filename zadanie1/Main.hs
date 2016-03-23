@@ -40,8 +40,9 @@ main = do
            contents <- getContents
            print (analyze contents)
         else do
-           -- no file b file
            handle <- openFile (head args) ReadMode
            contents <- hGetContents handle
-           print (analyze contents)
            hClose handle
+           if null (words contents)
+           then putStrLn "Error: Empty file."
+           else print (analyze contents)
