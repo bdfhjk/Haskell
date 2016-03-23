@@ -39,12 +39,14 @@ processLine g c = processNeighbors g w1 w2
     r  = map rInt w
     w  = words c
 
-analyze c = if lo <= 1 then getRoute ge lo hi 1 else []
+analyze c = if lo <= 1 then getRoute ge lo hi 1 num else []
   where
-    ge = foldl processLine g (lines c)
-    g = createGraph (lo, hi)
-    lo = minim c
-    hi = maxim c
+    ge   = foldl processLine g (lines c)
+    g    = createGraph (lo, hi) ini
+    ini  = zip num (replicate maxBound [])
+    num  = map rInt (words c)
+    lo   = minim c
+    hi   = maxim c
 
 main = do
         args <- getArgs
@@ -55,7 +57,7 @@ main = do
         else do
            handle <- openFile (head args) ReadMode
            contents <- hGetContents handle
-           hClose handle
            if null (words contents)
            then putStrLn "Error: Empty file."
            else print (analyze contents)
+           hClose handle

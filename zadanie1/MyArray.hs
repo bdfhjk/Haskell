@@ -169,14 +169,6 @@ listToPair (lo, hi) (h:tl) idx
 -- Function sluggishly constructing the binary search tree.
 makeArray (tree_lo, tree_hi) (lo, hi)
     | lo == hi           = EmptyLeaf
-    | lo == sr           = Node
-                              EmptyLeaf
-                              sr
-                              (makeArray (tree_lo, tree_hi) (sr_next, hi))
-    | sr_next == hi      = Node
-                              (makeArray (tree_lo, tree_hi) (lo, sr))
-                              sr
-                              EmptyLeaf
     | otherwise = Node
                     (makeArray (tree_lo, tree_hi) (lo, sr))
                     sr
