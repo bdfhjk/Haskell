@@ -2,24 +2,25 @@ module MyArray ( Array, Ix, range, rangeSize, index, inRange,
                  listArray, (!), elems, array, update, (//)) where
 
 class Ord a => Ix a where
-    --Check if a pair of idexes is a vaild Array range. [private]
+    -- |Check if a pair of idexes is a vaild Array range. [private]
     correct :: (a,a) -> Bool
 
-    --Return the a-th element inside (b,c) range of indexes. [private]
+    -- |Return the a-th element inside (b,c) range of indexes. [private]
     fromPosition :: (a,a) -> Int -> a
 
-    --Return the list of elements in range (a,b).
+    -- |Return the list of elements in range (a,b).
     range     :: (a,a) -> [a]
 
-    --Get the numbers of elements in range (a, b).
+    -- |Get the numbers of elements in range (a, b).
     rangeSize :: (a,a) -> Int
 
-    --Get the integer position of element a in range (a,b).
+    -- |Get the integer position of element a in range (a,b).
     index     :: (a,a) -> a -> Int
 
-    --Check if the element a is in range (a, b).
+    -- |Check if the element a is in range (a, b).
     inRange   :: (a,a) -> a -> Bool
 
+-- fromEnum was used to convert from char to int.
 instance Ix Int where
     correct (lo, hi) = lo <= hi
     fromPosition (lo, _) no = lo + no
@@ -30,6 +31,8 @@ instance Ix Int where
         | lo <= w && w <= hi = True
         | otherwise          = False
 
+-- Instances Int and Integer are similar, but separated due to technical
+-- troubles with inheritance in Haskell.
 instance Ix Integer where
     correct (lo, hi) = lo <= hi
     fromPosition (lo, _) no = lo + toInteger no
@@ -76,33 +79,35 @@ instance (Ix a, Ix b) => Ix (a,b) where
     inRange ((lo1, lo2), (hi1, hi2)) (mid1, mid2) =
       inRange (lo1, hi1) mid1 && inRange (lo2, hi2) mid2
 
+-- | Root store the array range and a single main node.
+-- | Nodes are representing a binary search tree.
 data Array i e = Leaf i e | EmptyLeaf
                 | Node (Array i e) i (Array i e)
                 | Root i i (Array i e)
                 deriving Show
 
---Create an Array from list of elements.
+-- |Create an Array from list of elements.
 listArray   :: Ix i => (i, i) -> [e] -> Array i e
 
---Return a list of all elements in the Array.
+-- |Return a list of all elements in the Array.
 elems       :: Ix i => Array i e -> [e]
 
---Get the element from Array, from specified position.
+-- |Get the element from Array, from specified position.
 (!)         :: Ix i => Array i e -> i -> e
 
---Create an Array from list of pair (index, element).
+-- |Create an Array from list of pair (index, element).
 array       :: Ix i => (i, i) -> [(i, e)] -> Array i e
 
---Update the Array at specified index.
+-- |Update the Array at specified index.
 update      :: Ix i => i -> e -> Array i e -> Array i e
 
---Update the Array at specified indexes.
+-- |Update the Array at specified indexes.
 (//)        :: Ix i => Array i e -> [(i, e)] -> Array i e
 
---Convert list of elements to list of pairs (index, element) [private]
+-- |Convert list of elements to list of pairs (index, element). [private]
 listToPair  :: Ix i => (i, i) -> [e] -> Int -> [(i, e)]
 
---Create an empty Array of selected indexes. [private]
+-- |Create an empty Array of selected indexes. [private]
 makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
 
 (!) (Root lo hi n) idx
@@ -117,8 +122,11 @@ makeArray   :: Ix i => (i, i) -> (i,i) -> Array i e
     | idx_old == idx    = e
     | otherwise         = error "! - incorrect index"
 
-(!) (EmptyLeaf) _       = undefined
+-- Accessing a non-existing element in the array is prohibited.
+(!) EmptyLeaf _       = undefined
 
+-- Creating an array with range (a,b) a>b is resulting with an empty array.
+-- According to the task clarification on Moodle platform.
 array (lo, hi) l
     |   correct (lo, hi) =   (//) (Root lo hi (makeArray (lo, hi) (lo, hi))) l
     |   otherwise        =   Root lo hi EmptyLeaf
@@ -158,22 +166,28 @@ listToPair (lo, hi) (h:tl) idx
     where
         i = fromPosition (lo, hi) idx
 
+-- Function sluggishly constructing the binary search tree.
 makeArray (tree_lo, tree_hi) (lo, hi)
     | lo == hi           = EmptyLeaf
-    | lo == sr           = Node EmptyLeaf sr
-                (makeArray (tree_lo, tree_hi) (sr_next, hi))
-    | sr_next == hi      = Node (makeArray (tree_lo, tree_hi) (lo, sr)) sr
-                           EmptyLeaf
-    | otherwise = Node (makeArray (tree_lo, tree_hi) (lo, sr))
-                sr
-               (makeArray (tree_lo, tree_hi) (sr_next, hi))
+    | lo == sr           = Node
+                              EmptyLeaf
+                              sr
+                              (makeArray (tree_lo, tree_hi) (sr_next, hi))
+    | sr_next == hi      = Node
+                              (makeArray (tree_lo, tree_hi) (lo, sr))
+                              sr
+                              EmptyLeaf
+    | otherwise = Node
+                    (makeArray (tree_lo, tree_hi) (lo, sr))
+                    sr
+                    (makeArray (tree_lo, tree_hi) (sr_next, hi))
     where
-      lo_idx = index (tree_lo, tree_hi) lo
-      hi_idx = index (tree_lo, tree_hi) hi
+      lo_idx  = index (tree_lo, tree_hi) lo
+      hi_idx  = index (tree_lo, tree_hi) hi
       sr      = fromPosition (tree_lo, tree_hi) (quot (hi_idx + lo_idx) 2)
       sr_next = fromPosition (tree_lo, tree_hi) (quot (hi_idx + lo_idx) 2 +1)
 
 elems (Root _ _ n)        = elems n
 elems (Leaf _ e)          = [e]
-elems (EmptyLeaf)       = []
+elems EmptyLeaf           = []
 elems (Node a1 _ a2)      = elems a1 ++ elems a2

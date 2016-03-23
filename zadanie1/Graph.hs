@@ -4,24 +4,26 @@ import MyArray
 type Graph   = Array Int [Int]
 type Visited = Array Int Bool
 
--- Create a graph with specified range of vertices
+-- |Create a graph with specified range of vertices.
 createGraph  :: (Int, Int) -> Graph
 
--- Add a specified neighbor to a specified vertex
+-- |Add a specified neighbor to a specified vertex.
 addNeighbor  :: Graph -> Int -> Int -> Graph
 
--- Return neighbor list for a specfied vertex
+-- |Return neighbor list for a specfied vertex.
 getNeighbors :: Graph -> Int -> [Int]
 
--- Return the list of vertices available from a specified one
+-- |Return the list of vertices available from a specified one.
 getRoute     :: Graph -> Int -> Int -> Int -> [Int]
 
--- Visit a specified vertex
+-- |Visit a specified vertex. [private]
 visit        :: Graph -> Visited -> Int -> Visited
 
--- Visit each vertex from a list
+-- |Visit each vertex from a list. [private]
 visitAll     :: Graph -> Visited -> [Int] -> Visited
 
+-- The initial graph will contain all vertices between (lo, hi)
+-- with empty neighbors list for each.
 createGraph (lo, hi) = listArray (lo, hi) (replicate maxBound [])
 
 addNeighbor g w1 w2 = update w1 l2 g
