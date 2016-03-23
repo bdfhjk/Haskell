@@ -1,4 +1,4 @@
-module Graph(createGraph, addNeighbor, getNeighbors, getRoute) where
+module Graph(Graph, createGraph, addNeighbor, getNeighbors, getRoute) where
 import MyArray
 
 type Graph   = Array Int [Int]
@@ -30,7 +30,7 @@ addNeighbor g w1 w2 = update w1 l2 g
 
 getNeighbors g w = g ! w
 
-getRoute g lo hi w  = map snd (filter fst (zip l [1..]))
+getRoute g lo hi w  = map snd (filter fst (zip l [lo..]))
     where
       l = elems (visit g v w)
       v = listArray (lo, hi) (replicate maxBound False)
