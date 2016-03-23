@@ -26,7 +26,7 @@ processLine g c = processNeighbors g w1 w2
     r  = map rInt w
     w  = words c
 
-analyze c = getRoute ge lo hi 1
+analyze c = if lo <= 1 then getRoute ge lo hi 1 else []
   where
     ge = foldl processLine g (lines c)
     g = createGraph (lo, hi)
