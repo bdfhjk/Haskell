@@ -43,7 +43,7 @@ rotate :: Tree a -> Tree a
 rotate Empty = Empty
 rotate (Node a Empty Node(c lx rx)) = Node b l2 r2 where
     b = if (sized r > 2) then c else a
-    l2 = if (sized r > 2) then 
+    l2 = if (sized r > 2) then
 -}
 
 contains :: (Ord a) => a -> Tree a -> Bool
@@ -56,5 +56,3 @@ contains a (Node b l r)
 fromList :: (Ord a) => [a] -> Tree a
 fromList [] = Empty
 fromList (h:t) = insert h (fromList t)
-
-

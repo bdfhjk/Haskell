@@ -21,7 +21,3 @@ allCombinations (xs:xss) = do
   x <- xs
   l <- allCombinations xss
   return (x:l)
-
-main :: IO()
-main =
-  print (allCombinations [[1,2], [4,5], [6], [7]])
