@@ -1,6 +1,6 @@
 all: Interpreter
 
-Lexsyntax.x :
+Lexsyntax.x : syntax.cf
 	bnfc -haskell syntax.cf
 
 Lexsyntax.hs : Lexsyntax.x

@@ -1,3 +1,14 @@
-EAdd.	Exp	        ::=	Exp	"+"	Exp1 ;
-EInt.	Exp2	    ::=	Integer	;
+EAdd.	    Exp	            ::=	Exp	"+"	Exp1 ;
+ESub.       Exp             ::= Exp "-" Exp1 ;
+EMul.       Exp1            ::= Exp1 "*" Exp2 ;
+EDiv.       Exp1            ::= Exp1 "/" Exp2 ;
+EInt.	    Exp2	        ::=	Integer ;
+Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
+Tint.       Type_specifier  ::= "I" ;
+Tbool.      Type_specifier  ::= "B" ;
+Tlist.      Type_specifier  ::= "L" ;
+Tany.       Type_specifier  ::= "A" ;
+Progr.      Program                 ::= Declaration_specifier ">" Exp ;
+Type.       Declaration_specifier   ::= Type_specifier ;
+token       EmptyDec "$" ;
 coercions	Exp	2	;

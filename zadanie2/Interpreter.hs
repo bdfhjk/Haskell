@@ -28,6 +28,9 @@ run  :: Exp -> Integer
 
 eval (EInt v) _ = v
 eval (EAdd e1 e2) env = (eval e1 env) + (eval e2 env)
+eval (ESub e1 e2) env = (eval e1 env) - (eval e2 env)
+eval (EMul e1 e2) env = (eval e1 env) * (eval e2 env)
+eval (EDiv e1 e2) env = quot (eval e1 env) (eval e2 env)
 
 run e  = eval e emptyEnv
 
