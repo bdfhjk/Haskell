@@ -4,6 +4,7 @@ EMul.       Exp1            ::= Exp1 "*" Exp2 ;
 EDiv.       Exp1            ::= Exp1 "/" Exp2 ;
 EInt.	      Exp2	          ::=	Integer ;
 Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
+DFun.       Decl            ::= define Type_specifier String "(" {Type_specifier String} ")"
 TInt.       Type_specifier  ::= "I" ;
 TBool.      Type_specifier  ::= "B" ;
 TList.      Type_specifier  ::= "L" ;
