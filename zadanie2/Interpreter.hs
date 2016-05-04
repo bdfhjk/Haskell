@@ -16,22 +16,23 @@ import qualified Data.Map as M
 
 type ParseFun a = [Token] -> Err a
 type Verbosity = Int
-type Env = M.Map String Int
+type Env = M.Map String Integer
 type Eval a = ReaderT Env (ExceptT String (WriterT [String] IO)) a
 
-envLookup s   env = env s
-envBind   s v env = (\s' -> if s == s' then v else env s)
-emptyEnv = error "Not found"
+emptyEnv = M.empty
 
 showTree    :: (Show a, Print a) => Int -> a -> IO ()
 putStrV     :: Verbosity -> String -> IO ()
 processFile :: Verbosity -> ParseFun Program -> FilePath -> IO ()
 process     :: Verbosity -> ParseFun Program -> String -> IO ()
 main        :: IO ()
+bindVal        :: String -> Integer -> Env -> Env
 
 evalExp   :: Exp -> Eval Integer
 evalProgr :: Program -> Eval Integer
 run       :: Program -> Verbosity -> IO()
+
+bindVal = M.insert
 
 evalExp (EInt v) = return v
 
@@ -55,10 +56,15 @@ evalExp (EDiv e1 e2) = do
   e2' <- evalExp e2
   return $ quot e1' e2'
 
---evalProgr (Progr d e) = evalExp e
---run e  = evalProgr e emptyEnv
+evalExp (ELet (Bind (Ident s) e') e) = do
+    e'' <- evalExp e'
+    local (bindVal s e'') (evalExp e)
 
---runEval e =  runWriterT (runErrorT (runReaderT evalProgr e emptyEnv))
+evalExp (EVar (Ident s)) = do
+  m <- ask
+  case M.lookup s m of
+    Just a -> return a
+    _ -> error "Incorrect variable"
 
 showTree v tree = do
     putStrV v $ "\n[Abstract Syntax]\n\n" ++ show tree
@@ -68,7 +74,9 @@ putStrV v s = when (v > 1) $ putStrLn s
 
 processFile v p f = readFile f >>= process v p
 
-evalProgr (Progr _ e) = evalExp e
+evalProgr (Progr _ e) = do
+  evalExp e
+
 run p v = do
   result <- runWriterT (runExceptT (runReaderT (evalProgr p) emptyEnv))
   mapM_ (putStrV v) (snd result)

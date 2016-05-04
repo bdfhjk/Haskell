@@ -4,6 +4,7 @@ Dec.        Decl            ::= Type [Ident] ;
 EAdd.       Exp             ::= Exp "+" Exp1 ;
 ESub.       Exp             ::= Exp "-" Exp1 ;
 EMul.       Exp1            ::= Exp1 "*" Exp2 ;
+EVar.       Exp4            ::= Ident ; 
 EDiv.       Exp1            ::= Exp1 "/" Exp2 ;
 -- EComp.      Exp2            ::= Exp2 "<" Exp3 ;
 Bind.       Binding         ::= Ident "=" Exp ;
