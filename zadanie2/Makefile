@@ -27,5 +27,6 @@ clean:
 		  Parsyntax.hs \
 		  Lexsyntax.hs \
 		  *.o \
-		  *.hi
+		  *.hi \
+		  *.bak
 
