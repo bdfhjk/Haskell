@@ -1,11 +1,11 @@
-EAdd.	      Exp	            ::=	Exp	"+"	Exp1 ;
+EAdd.       Exp             ::= Exp "+" Exp1 ;
 ESub.       Exp             ::= Exp "-" Exp1 ;
 EMul.       Exp1            ::= Exp1 "*" Exp2 ;
 EDiv.       Exp1            ::= Exp1 "/" Exp2 ;
-EInt.	      Exp2	          ::=	Integer ;
+EInt.       Exp2            ::= Integer ;
 Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
 TInt.       Type_specifier  ::= "I" ;
 TBool.      Type_specifier  ::= "B" ;
 TList.      Type_specifier  ::= "L" ;
 Progr.      Program         ::= "->" Exp2;
-coercions Exp 16;
+coercions   Exp 16;
