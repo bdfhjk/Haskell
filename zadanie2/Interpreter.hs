@@ -16,8 +16,21 @@ import qualified Data.Map as M
 
 type ParseFun a = [Token] -> Err a
 type Verbosity = Int
-type Env = M.Map String Integer
-type Eval a = ReaderT Env (ExceptT String (WriterT [String] IO)) a
+type Env = M.Map String Value
+
+-- Monad reader -> dynamic state of execution
+-- Monad state  -> static environment
+-- Monad except -> reporting runtime errors
+-- Monad writer -> interpreter-debugging logs
+
+type Eval a = ReaderT Env (StateT Env (ExceptT String (WriterT [String] IO))) a
+
+data Value = VInt Integer           |
+             VBool Bool             |
+             VClos Env Exp          |
+             VCons Int Value        |
+             VPair Value Value      |
+             VLambda String Exp deriving(Show)
 
 emptyEnv = M.empty
 
@@ -26,35 +39,61 @@ putStrV     :: Verbosity -> String -> IO ()
 processFile :: Verbosity -> ParseFun Program -> FilePath -> IO ()
 process     :: Verbosity -> ParseFun Program -> String -> IO ()
 main        :: IO ()
-bindVal        :: String -> Integer -> Env -> Env
+bindVal     :: String -> Value -> Env -> Env
+evalExp     :: Exp -> Eval Value
+evalProgr   :: Program -> Eval Value
+run         :: Program -> Verbosity -> IO ()
+evalDecl    :: Decl -> Eval ()
+evalLambda  :: String -> Exp -> [Exp] -> Eval Value
 
-evalExp   :: Exp -> Eval Integer
-evalProgr :: Program -> Eval Integer
-run       :: Program -> Verbosity -> IO()
+liftVIntExp   :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
+liftVBoolExp  :: (Bool -> Bool -> Bool) -> Exp -> Exp -> Eval Value
 
-bindVal = M.insert
+bindVal    = M.insert
+--bindValEnv = foldr (M.insert )
 
-evalExp (EInt v) = return v
+liftVIntExp f e1 e2 = do
+  (VInt e1') <- evalExp e1
+  (VInt e2') <- evalExp e2
+  return $ VInt $ f e1' e2'
 
-evalExp (EAdd e1 e2) = do
-  e1' <- evalExp e1
-  e2' <- evalExp e2
-  return $ e1' + e2'
+liftVBoolExp f e1 e2 = do
+  (VBool e1') <- evalExp e1
+  (VBool e2') <- evalExp e2
+  return $ VBool $ f e1' e2'
 
-evalExp (ESub e1 e2) = do
-  e1' <- evalExp e1
-  e2' <- evalExp e2
-  return $ e1' - e2'
+evalLambda s e l =
+  case l of
+    []  -> error "Need more arguments"
+    [h] -> do
+      e' <- evalExp h
+      local (bindVal s e') (evalExp e)
+    h:t  -> do
+      e' <- evalExp h
+      local (bindVal s e') (evalExp (ECall2 e t))
 
-evalExp (EMul e1 e2) = do
-  e1' <- evalExp e1
-  e2' <- evalExp e2
-  return $ e1' * e2'
 
-evalExp (EDiv e1 e2) = do
-  e1' <- evalExp e1
-  e2' <- evalExp e2
-  return $ quot e1' e2'
+evalExp (EInt v)     = return (VInt v)
+evalExp (EAdd e1 e2) = liftVIntExp (+) e1 e2
+evalExp (ESub e1 e2) = liftVIntExp (-) e1 e2
+evalExp (EMul e1 e2) = liftVIntExp (*) e1 e2
+evalExp (EDiv e1 e2) = liftVIntExp quot e1 e2
+evalExp (EComp e1 e2)= liftVBoolExp (<) e1 e2
+evalExp (ELambda (Ident s) e) = return (VLambda s e)
+evalExp (ECall2 e l) = do
+  e' <- evalExp e
+  case e' of
+    VLambda s e2 -> evalLambda s e2 l
+    _ -> error "Incorrect function call2"
+
+evalExp (ECall (Ident f) l) = do
+  m <- get
+  case M.lookup f m of
+    Just (VClos env e) -> case e of
+      ELambda (Ident s) e' -> evalLambda s e' l
+      _ -> local (const env) (evalExp e)
+    Just (VLambda s e) -> evalLambda s e l
+    _ -> error "Incorrect function call"
 
 evalExp (ELet (Bind (Ident s) e') e) = do
     e'' <- evalExp e'
@@ -74,15 +113,30 @@ putStrV v s = when (v > 1) $ putStrLn s
 
 processFile v p f = readFile f >>= process v p
 
-evalProgr (Progr _ e) = do
+evalDecl (DType _ _) = return ()
+evalDecl (DFun (Ident n) l e) = do
+  m  <- get
+  case l of
+    []  -> put (M.insert n (VClos emptyEnv e) m)
+    _   -> let e' = foldr ELambda e l in
+           put (M.insert n (VClos emptyEnv e') m)
+
+evalDecls = mapM_ evalDecl
+
+evalProgr (Progr f e) = do
+  evalDecls f
   evalExp e
 
 run p v = do
-  result <- runWriterT (runExceptT (runReaderT (evalProgr p) emptyEnv))
+  result <- runWriterT
+           (runExceptT
+           (runStateT
+           (runReaderT (evalProgr p) emptyEnv) emptyEnv))
   mapM_ (putStrV v) (snd result)
   case fst result of
     Left e -> print e
-    Right i -> print i
+    Right (VInt i, _) -> print i
+    _ -> print result
 
 process v p s = let ts = myLexer s in case p ts of
            Bad e    -> do putStrLn "Parse              Failed...\n"
