@@ -1,0 +1,14 @@
+./Interpreter good/arithmetic.ftl       | diff -bsq good/arithmetic.out - 
+./Interpreter good/comparison_if.ftl    | diff -bsq good/comparison_if.out - 
+./Interpreter good/comparison_if_2.ftl  | diff -bsq good/comparison_if_2.out - 
+./Interpreter good/function.ftl         | diff -bsq good/function.out - 
+./Interpreter good/function2.ftl        | diff -bsq good/function2.out - 
+./Interpreter good/function3.ftl        | diff -bsq good/function3.out - 
+./Interpreter good/highorder.ftl        | diff -bsq good/highorder.out - 
+./Interpreter good/if.ftl               | diff -bsq good/if.out - 
+./Interpreter good/lambda.ftl           | diff -bsq good/lambda.out - 
+./Interpreter good/let.ftl              | diff -bsq good/let.out - 
+./Interpreter good/let2.ftl             | diff -bsq good/let2.out - 
+./Interpreter good/papplication.ftl     | diff -bsq good/papplication.out - 
+./Interpreter good/recursion.ftl        | diff -bsq good/recursion.out - 
+./Interpreter good/simple.ftl           | diff -bsq good/simple.out - 

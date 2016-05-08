@@ -1,31 +1,47 @@
 Progr.      Program         ::= [Decl] "->" Exp;
-DType.      Decl            ::= "data" Ident "=" [Cons] ;
 DFun.       Decl            ::= "FN" Ident "(" [Ident] ")" "=" Exp ;
-DCons.      Cons            ::= Ident Ident ;
-EAdd.       Exp             ::= Exp "+" Exp1 ;
-ESub.       Exp             ::= Exp "-" Exp1 ;
-EMul.       Exp1            ::= Exp1 "*" Exp2 ;
-EVar.       Exp4            ::= Ident ;
-EDiv.       Exp1            ::= Exp1 "/" Exp2 ;
-EComp.      Exp2            ::= Exp2 "<" Exp3 ;
-ECall.      Exp2            ::= "call" Ident "(" [Exp] ")";
-ECall2.     Exp2            ::= "call" Exp1 "(" [Exp] ")";
-Bind.       Binding         ::= Ident "=" Exp ;
-ELet.       Exp4            ::= "let" Binding "in" Exp ;
-ELambda.    Exp5            ::= "lambda" Ident "=>" Exp;
-EInt.       Exp3            ::= Integer ;
+ECall.      Exp1            ::= "call" Ident "(" [Exp] ")";
+ECall2.     Exp15           ::= "call" Exp1 "(" [Exp] ")";
+ELet.       Exp3            ::= "let" Binding "in" Exp3 ;
+EIf.        Exp6            ::= "if" BExp "then" Exp1 "else" Exp2;
+ELambda.    Exp7            ::= "lambda" Ident "=>" Exp;
+CList.      Exp8            ::= "[]" ;
+EHead.      Exp8            ::= "head"  Exp7 ;
+ETail.      Exp8            ::= "tail"  Exp7 ;
+EAppend.    Exp9            ::= Exp8 ":" Exp7;
+EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
+ESub.       Exp12           ::= Exp12 "-" Exp13 ;
+EMul.       Exp13           ::= Exp13 "*" Exp14 ;
+EDiv.       Exp13           ::= Exp13 "/" Exp14 ;
+EVar.       Exp16           ::= Ident ;
+EInt.       Exp16           ::= Integer ;
+
+BEmpty.     BExp            ::= "empty" Exp ;
+CTrue.      BExp            ::= "T" ;
+CFalse.     BExp            ::= "F" ;
+BComp.      BExp            ::= BExp1 "==" BExp2 ;
+EComp2.     BExp            ::= Exp9 "==" Exp10 ;
+EComp.      BExp            ::= Exp10 "<" Exp11 ;
+
+Bind.       Binding         ::= Ident "=" Exp14 ;
+
+
+coercions   BExp 6;
+coercions   Exp 17 ;
+separator   Exp ",";
+separator   Decl "," ;
+separator   Binding "," ;
+separator   Ident "," ;
+comment     "--" ;
+
+-- DType.      Decl            ::= "data" Ident "=" [Cons] ;
+-- terminator  Function "" ;
+-- separator Cons "|" ;
+-- DCons.      Cons            ::= Ident Ident ;
+-- TCons.      Type            ::= "<" Ident ">"
 -- Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
 -- TInt.       Type            ::= "I" ;
 -- TBool.      Type            ::= "B" ;
--- TList.      Type            ::= "L" ;
--- Patter.     Pattern         ::= Type "=" Exp ;
 -- EMath.      Exp             ::= "case" Exp "of" [Pattern] ;
-coercions   Exp 16 ;
-separator   Exp ",";
+-- Patter.     Pattern         ::= Exp "=" Exp2 ;
 -- separator   Pattern "," ;
--- terminator  Function "" ;
-separator   Decl "," ;
-separator   Binding "," ;
-separator Ident "," ;
-separator Cons "|" ;
-comment "--" ;
