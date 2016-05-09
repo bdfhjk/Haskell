@@ -1,14 +1,13 @@
 Progr.      Program         ::= [Decl] "->" Exp;
 DFun.       Decl            ::= "FN" Ident "(" [Ident] ")" "=" Exp ;
-ECall.      Exp1            ::= "call" Ident "(" [Exp] ")";
-ECall2.     Exp15           ::= "call" Exp1 "(" [Exp] ")";
+ECall.      Exp15           ::= "call" Exp1 "(" [Exp] ")";
 ELet.       Exp3            ::= "let" Binding "in" Exp3 ;
 EIf.        Exp6            ::= "if" BExp "then" Exp1 "else" Exp2;
 ELambda.    Exp7            ::= "lambda" Ident "=>" Exp;
 CList.      Exp8            ::= "[]" ;
 EHead.      Exp8            ::= "head"  Exp7 ;
 ETail.      Exp8            ::= "tail"  Exp7 ;
-EAppend.    Exp9            ::= Exp8 ":" Exp7;
+EAppend.    Exp9            ::= Exp9 ":" Exp10;
 EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
 ESub.       Exp12           ::= Exp12 "-" Exp13 ;
 EMul.       Exp13           ::= Exp13 "*" Exp14 ;
@@ -32,6 +31,7 @@ separator   Exp ",";
 separator   Decl "," ;
 separator   Binding "," ;
 separator   Ident "," ;
+
 comment     "--" ;
 
 -- DType.      Decl            ::= "data" Ident "=" [Cons] ;

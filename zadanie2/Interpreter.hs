@@ -67,7 +67,7 @@ evalLambda s e l =
       local (bindVal s e') (evalExp e)
     h:t  -> do
       e' <- evalExp h
-      local (bindVal s e') (evalExp (ECall2 e t))
+      local (bindVal s e') (evalExp (ECall e t))
 
 evalBExp (CTrue)        = return (VBool True)
 evalBExp (CFalse)       = return (VBool False)
@@ -117,15 +117,16 @@ evalExp (EMul e1 e2) = liftVIntExp (*) e1 e2
 evalExp (EDiv e1 e2) = liftVIntExp quot e1 e2
 
 evalExp (ELambda (Ident s) e) = return (VLambda s e)
-evalExp (ECall2 e l) = do
-  e' <- evalExp e
-  evalCall e' l
 
-evalExp (ECall (Ident f) l) = do
-  m <- get
-  case M.lookup f m of
-    Just v -> evalCall v l
-    Nothing -> error "Incorrect function call"
+evalExp (ECall e l) = case e of
+    EVar (Ident f) -> do
+      m <- get
+      case M.lookup f m of
+        Just v -> evalCall v l
+        Nothing -> error "Incorrect function call"
+    _ -> do
+      e' <- evalExp e
+      evalCall e' l
 
 evalExp (ELet (Bind (Ident s) e') e) = do
     e'' <- evalExp e'
