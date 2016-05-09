@@ -41,7 +41,6 @@ evalBExp    :: BExp -> Eval Value
 evalProgr   :: Program -> Eval Value
 evalDecl    :: Decl -> Eval ()
 evalDecls   :: [Decl] -> Eval ()
-evalLambda  :: String -> Exp -> [Exp] -> Eval Value
 evalCall    :: Value -> [Exp] -> Eval Value
 run         :: Program -> Verbosity -> IO ()
 liftVIntExp   :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
@@ -58,16 +57,6 @@ liftVBoolExp f e1 e2 = do
   (VBool e1') <- evalBExp e1
   (VBool e2') <- evalBExp e2
   return $ VBool $ f e1' e2'
-
-evalLambda s e l =
-  case l of
-    []  -> error "Need more arguments"
-    [h] -> do
-      e' <- evalExp h
-      local (bindVal s e') (evalExp e)
-    h:t  -> do
-      e' <- evalExp h
-      local (bindVal s e') (evalExp (ECall e t))
 
 evalBExp (CTrue)        = return (VBool True)
 evalBExp (CFalse)       = return (VBool False)
@@ -116,7 +105,7 @@ evalExp (ESub e1 e2) = liftVIntExp (-) e1 e2
 evalExp (EMul e1 e2) = liftVIntExp (*) e1 e2
 evalExp (EDiv e1 e2) = liftVIntExp quot e1 e2
 
-evalExp (ELambda (Ident s) e) = return (VLambda s e)
+evalExp (ELambda (TDef _ (Ident s)) e) = return (VLambda s e)
 
 evalExp (ECall e l) = case e of
     EVar (Ident f) -> do
@@ -128,7 +117,7 @@ evalExp (ECall e l) = case e of
       e' <- evalExp e
       evalCall e' l
 
-evalExp (ELet (Bind (Ident s) e') e) = do
+evalExp (ELet (TDef _ (Ident s)) e' e) = do
     e'' <- evalExp e'
     local (bindVal s e'') (evalExp e)
 
@@ -176,7 +165,7 @@ putStrV v s = when (v > 1) $ putStrLn s
 
 processFile v p f = readFile f >>= process v p
 
-evalDecl (DFun (Ident n) l e) = do
+evalDecl (DFun (TDef _ (Ident n)) l e) = do
   m  <- get
   case l of
     []  -> put (M.insert n (VClos M.empty e) m)

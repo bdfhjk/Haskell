@@ -1,17 +1,17 @@
 Progr.      Program         ::= [Decl] "->" Exp;
-DFun.       Decl            ::= "FN" Ident "(" [Ident] ")" "=" Exp ;
+DFun.       Decl            ::= "FN" TDf  "(" [TDf] ")" "=" Exp ;
 ECall.      Exp15           ::= "call" Exp1 "(" [Exp] ")";
-ELet.       Exp3            ::= "let" Binding "in" Exp3 ;
+ELet.       Exp3            ::= "let" TDf "=" Exp14 "in" Exp3 ;
 EIf.        Exp6            ::= "if" BExp "then" Exp1 "else" Exp2;
-ELambda.    Exp7            ::= "lambda" Ident "=>" Exp;
-CList.      Exp8            ::= "[]" ;
+ELambda.    Exp7            ::= "lambda" TDf "=>" Exp;
 EHead.      Exp8            ::= "head"  Exp7 ;
 ETail.      Exp8            ::= "tail"  Exp7 ;
-EAppend.    Exp9            ::= Exp9 ":" Exp10;
+EAppend.    Exp9            ::= Exp10 ":" Exp9;
 EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
 ESub.       Exp12           ::= Exp12 "-" Exp13 ;
 EMul.       Exp13           ::= Exp13 "*" Exp14 ;
 EDiv.       Exp13           ::= Exp13 "/" Exp14 ;
+CList.      Exp16           ::= "[]" ;
 EVar.       Exp16           ::= Ident ;
 EInt.       Exp16           ::= Integer ;
 
@@ -22,15 +22,17 @@ BComp.      BExp            ::= BExp1 "==" BExp2 ;
 EComp2.     BExp            ::= Exp9 "==" Exp10 ;
 EComp.      BExp            ::= Exp10 "<" Exp11 ;
 
-Bind.       Binding         ::= Ident "=" Exp14 ;
+TInt.       Type            ::= "I" ;
+TBool.      Type            ::= "B" ;
+TList.      Type            ::= "L" ;
 
+TDef.       TDf             ::= Type Ident ;
 
 coercions   BExp 6;
 coercions   Exp 17 ;
 separator   Exp ",";
 separator   Decl "," ;
-separator   Binding "," ;
-separator   Ident "," ;
+separator   TDf "," ;
 
 comment     "--" ;
 
@@ -40,8 +42,6 @@ comment     "--" ;
 -- DCons.      Cons            ::= Ident Ident ;
 -- TCons.      Type            ::= "<" Ident ">"
 -- Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
--- TInt.       Type            ::= "I" ;
--- TBool.      Type            ::= "B" ;
 -- EMath.      Exp             ::= "case" Exp "of" [Pattern] ;
 -- Patter.     Pattern         ::= Exp "=" Exp2 ;
 -- separator   Pattern "," ;

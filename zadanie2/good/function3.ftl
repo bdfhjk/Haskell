@@ -1,1 +1,1 @@
-FN multiply(x,y) = x*y -> call multiply(4,5)
+FN I multiply(I x, I y) = x*y -> call multiply(4,5)

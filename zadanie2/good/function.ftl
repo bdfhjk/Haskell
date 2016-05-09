@@ -1,1 +1,1 @@
-FN fa() = 2 -> call fa()
+FN I fa() = 2 -> call fa()
