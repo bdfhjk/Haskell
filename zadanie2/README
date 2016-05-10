@@ -1,0 +1,44 @@
+Język Fast Tiny Language v2
+
+Opis: Język funkcyjny, w którym typy standardowe są oznaczane pojedyńczą dużą literą (I, B) w celu zwiększenia szybkości pisania prostych programów. Szczególnie zoptymalizowany w celu pisania programów mieszących się w jednej linijce, mających za cel policzenie pewnego wzoru rekurencyjnego.
+
+Można o nim myśleć jako o kalkulatorze do obliczania mało skomplikowanych wzorów matematycznych dla ustalonych danych.
+
+W języku FTL v2 nie ma wejścia / wyjścia, wynikiem wykonania programu
+jest zawsze pojedyncza liczba naturalna. Wszystkie liczby mieszczą się w zakresie haskelowego typu Int. 
+
+Język jest napisany w sposób umożliwiający łatwe dodanie standardowego wejścia / wyjścia oraz innych typów (np. char)
+
+Składniowo najbardziej będzie podobny jest Haskella, jednak to podobieństwo nie jest duże.
+
+Kontekst: Język zakłada spełnianie wszystkich założeń na 20 pkt - po konsultacji z wykładowcą, doszedłem do wniosku iż nie będę pracował nad implementacją rekurencyjnych i polimorficznych typów i będę zadowolony z 18pkt (uzględniając karę za deklarację języka).
+
+1 Co najmniej dwa typy wartości w wyrażeniach: int i bool
+(to znaczy if 2+2 then _ parsuje się, ale wyrażenie ma niepoprawny typ). 
+====> Tutaj dodatkowo wyrażenia typu if 2+2 then _ nie będą się parsować, rozdzieliłem te typy na dwa na etapie parsowania. Jeśli dobrze rozumiem to wymaganie, to jest nawet lepiej.
+
+2. Arytmetyka, porównania. 
+====> Zaimplementowane operacje: + - * / < . Można trywialnie rozszerzyć o dodatkowe jeśli wymagane.
+
+3. Deklaratywny if. 
+====> Zaimplementowany.
+
+4. Funkcje wieloargumentowe, rekurencja. 
+====> Zaimplementowane.
+
+5. Częściowa aplikacja i funkcje wyższego rzędu.
+====> Zaimplementowane.
+
+6. Listy z
+b) lub zestawem wbudowanych operacji: empty, head, tail 
+====> Wybrałem opcję b, Zaimplementowane.
+
+7. Listy dowolnego typu, także listy zagnieżdżone i listy funkcji
+====> Wybrałem tę opcję. Zaimplementowane. 
+
+8. Statyczne wiązanie identyfikatorów przy dowolnym poziomie zagnieżdżenia definicji.
+====> Zaimplementowane.
+
+9. Statyczne typowanie (tj. zawsze terminująca faza kontroli typów przed rozpoczęciem wykonania programu). Na tym poziomie można wymagać jawnego podawania typów, nawet dla każdego wprowadzanego identyfikatora.
+=====> Zaimplementowane, z drobną uwagą. Ponieważ każdy program jest w pełni deterministyczny i wykonywany czysto funkcyjnie, nie ma zdefiniowanej  pętli, kontrola typów przebiega "online". Nie widzę żadnego powodu, żeby ją rozdzielać do osobnej fazy przy takiej konstrukcji programu. Jeśli ze względów czysto edukacyjnych jest to wymagane, proszę o komentarz to wyodrębnie do osobnego kroku.
+

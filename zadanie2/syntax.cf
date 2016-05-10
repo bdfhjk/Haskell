@@ -11,7 +11,10 @@ EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
 ESub.       Exp12           ::= Exp12 "-" Exp13 ;
 EMul.       Exp13           ::= Exp13 "*" Exp14 ;
 EDiv.       Exp13           ::= Exp13 "/" Exp14 ;
-CList.      Exp16           ::= "[]" ;
+CListInt.   Exp16           ::= "[I]" ;
+CListBool.  Exp16           ::= "[B]" ;
+CListList.  Exp16           ::= "[L]" ;
+CListFun.   Exp16           ::= "[FUN]" ;
 EVar.       Exp16           ::= Ident ;
 EInt.       Exp16           ::= Integer ;
 
@@ -36,13 +39,3 @@ separator   Decl "," ;
 separator   TDf "," ;
 
 comment     "--" ;
-
--- DType.      Decl            ::= "data" Ident "=" [Cons] ;
--- terminator  Function "" ;
--- separator Cons "|" ;
--- DCons.      Cons            ::= Ident Ident ;
--- TCons.      Type            ::= "<" Ident ">"
--- Efunkpar.   Exp16           ::= Exp16 "(" Exp ")" ;
--- EMath.      Exp             ::= "case" Exp "of" [Pattern] ;
--- Patter.     Pattern         ::= Exp "=" Exp2 ;
--- separator   Pattern "," ;
