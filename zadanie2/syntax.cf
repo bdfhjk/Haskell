@@ -1,5 +1,5 @@
 Progr.      Program         ::= [Decl] "->" Exp;
-DFun.       Decl            ::= "FN" TDf  "(" [TDf] ")" "=" Exp ;
+DFun.       Decl            ::= "FN" TDf "(" [TDf] ")" "=" Exp ;
 ECall.      Exp15           ::= "call" Exp1 "(" [Exp] ")";
 ELet.       Exp3            ::= "let" TDf "=" Exp14 "in" Exp3 ;
 EIf.        Exp6            ::= "if" BExp "then" Exp1 "else" Exp2;
@@ -25,6 +25,7 @@ EComp.      BExp            ::= Exp10 "<" Exp11 ;
 TInt.       Type            ::= "I" ;
 TBool.      Type            ::= "B" ;
 TList.      Type            ::= "L" ;
+TFun.       Type            ::= "FUN" ;
 
 TDef.       TDf             ::= Type Ident ;
 

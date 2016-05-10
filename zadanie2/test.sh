@@ -8,6 +8,8 @@
 ./Interpreter good/if.ftl               | diff -bsq good/if.out - 
 ./Interpreter good/lambda.ftl           | diff -bsq good/lambda.out - 
 ./Interpreter good/list.ftl             | diff -bsq good/list.out -
+./Interpreter good/list_function.ftl    | diff -bsq good/list_function.out -
+./Interpreter good/list_list.ftl        | diff -bsq good/list_list.out -
 ./Interpreter good/let.ftl              | diff -bsq good/let.out - 
 ./Interpreter good/let2.ftl             | diff -bsq good/let2.out - 
 ./Interpreter good/papplication.ftl     | diff -bsq good/papplication.out - 

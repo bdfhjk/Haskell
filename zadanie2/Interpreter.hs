@@ -11,10 +11,13 @@ import Control.Monad.Trans.Except
 import Control.Monad.Writer
 import Control.Monad.State
 import qualified Data.Map as M
+import Data.Typeable
 
 type ParseFun a = [Token] -> Err a
 type Verbosity = Int
 type Env = M.Map String Value
+type CEnv = M.Map String Type
+
 
 -- Monad reader -> dynamic state of execution
 -- Monad state  -> static environment
@@ -174,7 +177,36 @@ evalDecl (DFun (TDef _ (Ident n)) l e) = do
 
 evalDecls = mapM_ evalDecl
 
+
+{-
+checkDecls  :: CEnv -> [Decl] -> Eval ()
+checkDecl   :: CEnv -> Decl -> Eval ()
+checkExp    :: CEnv -> Exp -> Eval()
+checkPair   :: CEnv -> Type -> Exp -> Eval()
+getType     :: CEnv -> Exp -> Eval Type
+
+checkDecls _ _ = return ()
+checkExp _ _ = return ()
+
+checkPair env t e = case e of
+  ELambda _ _ -> return ()              --Lambdas are polymporphic
+  _ -> do
+    t' <- getType env e
+    unless (t' == t) $ error "Static type checking failed"
+
+getType env e = case e of
+  EVar (Ident s) -> case M.lookup s env of
+    Just a -> return a
+    Nothing -> error "Incorrect variable"
+  _ -> return TInt
+
+checkDecl env (DFun (TDef t (Ident n)) l e) = do
+  checkPair env t e
+-}
+
 evalProgr (Progr f e) = do
+  --checkDecls M.empty f
+  --checkExp M.empty e
   evalDecls f
   evalExp e
 
