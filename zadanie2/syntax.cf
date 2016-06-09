@@ -11,10 +11,7 @@ EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
 ESub.       Exp12           ::= Exp12 "-" Exp13 ;
 EMul.       Exp13           ::= Exp13 "*" Exp14 ;
 EDiv.       Exp13           ::= Exp13 "/" Exp14 ;
-CListInt.   Exp16           ::= "[I]" ;
-CListBool.  Exp16           ::= "[B]" ;
-CListList.  Exp16           ::= "[L]" ;
-CListFun.   Exp16           ::= "[FUN]" ;
+CList.      Exp16           ::= "[" Type "]" ;
 EVar.       Exp16           ::= Ident ;
 EInt.       Exp16           ::= Integer ;
 
@@ -27,8 +24,8 @@ EComp.      BExp            ::= Exp10 "<" Exp11 ;
 
 TInt.       Type            ::= "I" ;
 TBool.      Type            ::= "B" ;
-TList.      Type            ::= "L" ;
-TFun.       Type            ::= "FUN" ;
+TList.      Type            ::= "L" Type;
+TFun.       Type            ::= "(" Type "=>" Type ")" ;
 
 TDef.       TDf             ::= Type Ident ;
 

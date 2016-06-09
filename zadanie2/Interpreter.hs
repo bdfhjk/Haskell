@@ -7,7 +7,6 @@ import Printsyntax
 import ErrM
 import Control.Monad.Reader
 import Control.Monad.Trans.Except
-import Control.Monad.Writer
 import Control.Monad.State
 import qualified Data.Map as M
 import Evaluator
@@ -33,12 +32,10 @@ evalProgr (Progr f e) = do
   evalExp e
 
 run p v = do
-  result <- runWriterT
-           (runExceptT
+  result <- runExceptT
            (runStateT
-           (runReaderT (evalProgr p) M.empty) M.empty))
-  mapM_ (putStrV v) (snd result)
-  case fst result of
+           (runReaderT (evalProgr p) M.empty) M.empty)
+  case result of
     Left e -> print e
     Right (VInt i, _) -> print i
     _ -> if v>1

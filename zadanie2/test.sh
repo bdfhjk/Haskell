@@ -1,4 +1,6 @@
 ./Interpreter good/arithmetic.ftl       | diff -bsq good/arithmetic.out - 
+./Interpreter good/call.ftl             | diff -bsq good/call.out - 
+./Interpreter good/call2.ftl            | diff -bsq good/call2.out - 
 ./Interpreter good/comparison_if.ftl    | diff -bsq good/comparison_if.out - 
 ./Interpreter good/comparison_if_2.ftl  | diff -bsq good/comparison_if_2.out - 
 ./Interpreter good/function.ftl         | diff -bsq good/function.out - 

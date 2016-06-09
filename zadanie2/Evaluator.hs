@@ -4,7 +4,6 @@ import Abssyntax
 import ErrM
 import Control.Monad.Reader
 import Control.Monad.Trans.Except
-import Control.Monad.Writer
 import Control.Monad.State
 import qualified Data.Map as M
 
@@ -19,14 +18,15 @@ type Env = M.Map String Value
 -- Monad state  -> static environment - local variables
 -- Monad except -> reporting runtime errors
 -- Monad writer -> interpreter/debugging logs
-type Eval a = ReaderT Env (StateT Env (ExceptT String (WriterT [String] IO))) a
+type Eval a = ReaderT Env (StateT Env (ExceptT String IO)) a
 
 data Value = VInt Integer           |
              VBool Bool             |
-             VClos Env Exp          |
+             VClos Env Value        |
              VCons Int Type         |
              VPair Value Value      |
-             VLambda String Exp deriving(Show)
+             VLambda String Value   |
+             VExp Exp                       deriving(Show)
 
 evalExp     :: Exp -> Eval Value
 evalBExp    :: BExp -> Eval Value
@@ -56,12 +56,15 @@ liftVBoolExp f e1 e2 = do
   (VBool e2') <- evalBExp e2
   return $ VBool $ f e1' e2'
 
-evalDecl (DFun (TDef _ (Ident n)) l e) = do
+-- Convert list of function arguments into recursive lambda expression.
+evalDeclWrapLambda (TDef _ (Ident h):t) e =
+  VLambda h (evalDeclWrapLambda t e)
+
+evalDeclWrapLambda [] e = VExp e
+
+evalDecl (DFun (TDef _ (Ident s)) l e) = do
   m  <- get
-  case l of
-    []  -> put (M.insert n (VClos M.empty e) m)
-    _   -> let e' = foldr ELambda e l in
-           put (M.insert n (VClos M.empty e') m)
+  put (M.insert s (VClos M.empty (evalDeclWrapLambda l e)) m)
 
 evalDecls = mapM_ evalDecl
 
@@ -84,14 +87,18 @@ evalBExp (BEmpty e) = do
     (VCons 0 _ ) -> return (VBool True)
     _ -> return (VBool False)
 
+evalExpWrapLambda e =
+  case e of
+    ELambda (TDef _ (Ident s)) e' -> do
+      e'' <- evalExpWrapLambda e'
+      return (VLambda s e'')
+    _ -> return (VExp e)
+
 evalExp (EIf b e1 e2)= do
   (VBool b') <- evalBExp b
   if b' then evalExp e1 else evalExp e2
 
-evalExp (CListInt)         = return (VCons 0 TInt)
-evalExp (CListBool)        = return (VCons 0 TBool)
-evalExp (CListList)        = return (VCons 0 TList)
-evalExp (CListFun)         = return (VCons 0 TFun)
+evalExp (CList t) = return (VCons 0 t)
 
 evalExp (EAppend e1 e2) = do
   e1' <- evalExp e1
@@ -116,7 +123,11 @@ evalExp (ESub e1 e2) = liftVIntExp (-) e1 e2
 evalExp (EMul e1 e2) = liftVIntExp (*) e1 e2
 evalExp (EDiv e1 e2) = liftVIntExp quot e1 e2
 
-evalExp (ELambda (TDef _ (Ident s)) e) = return (VLambda s e)
+evalExp el@(ELambda _ _) = do
+  -- Recursively convert ELambdas into VLambdas
+  e' <- evalExpWrapLambda el
+
+  return (VClos M.empty e')
 
 evalExp (ECall e l) = case e of
     EVar (Ident f) -> do
@@ -142,29 +153,14 @@ evalExp (EVar (Ident s)) = do
       Just a -> return a
       Nothing -> error ("Incorrect variable or function " ++ show s)
 
-evalCall vc@(VClos env e) [] = case e of
-  ELambda _ _ -> return vc
-  _ -> local (const env) (evalExp e)
+-- Procedural call
+evalCall (VClos env (VExp e)) [] = local (const env) (evalExp e)
 
-evalCall (VClos env e) (h:t) = case e of
-  el@(ELambda _ _) -> do
-    (VLambda s e') <- evalExp el
-    h' <- evalExp h
-    let env' = M.insert s h' env
-    evalCall (VClos env' e') t
-  _ -> local (const env) (evalExp e)
-
-evalCall vl@(VLambda _ _) [] = return vl
-evalCall (VLambda s e) [h] = do
+-- Applicative call
+evalCall (VClos env (VLambda s e)) [] = return (VClos env (VLambda s e))
+evalCall (VClos env (VLambda s e)) (h:t) = do
   h' <- evalExp h
-  local (bindVal s h') (evalExp e)
-evalCall (VLambda s e) (h:t) = do
-  h' <- evalExp h
-  case e of
-    el@(ELambda _ _) -> do
-      el' <- evalExp el
-      local (bindVal s h') (evalCall el' t)
-    ex -> evalExp ex
+  evalCall (VClos (M.insert s h' env) e) t
 
 evalCall _ _ = error "Call on an incorrect object"
 
@@ -176,5 +172,5 @@ matchTV t v =
     TBool -> case v of
       VBool _ -> return ()
       _ -> error "Static type check failed."
-    TFun -> return ()
-    TList -> return ()
+    TList _ -> return ()
+    TFun _ _ -> return ()
