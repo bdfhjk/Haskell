@@ -2,34 +2,31 @@ Progr.      Program         ::= [Decl] "->" Exp;
 DFun.       Decl            ::= "FN" TDf "(" [TDf] ")" "=" Exp ;
 ECall.      Exp15           ::= "call" Exp1 "(" [Exp] ")";
 ELet.       Exp3            ::= "let" TDf "=" Exp14 "in" Exp3 ;
-EIf.        Exp6            ::= "if" BExp "then" Exp1 "else" Exp2;
+EIf.        Exp6            ::= "if" Exp "then" Exp1 "else" Exp2;
 ELambda.    Exp7            ::= "lambda" TDf "=>" Exp;
+
 EHead.      Exp8            ::= "head"  Exp7 ;
 ETail.      Exp8            ::= "tail"  Exp7 ;
+EEmpty.     Exp8            ::= "empty" Exp7 ;
 EAppend.    Exp9            ::= Exp10 ":" Exp9;
+ECompE.     Exp10           ::= Exp10 "==" Exp11 ;
+ECompL.     Exp10           ::= Exp10 "<" Exp11 ;
 EAdd.       Exp12           ::= Exp12 "+" Exp13 ;
 ESub.       Exp12           ::= Exp12 "-" Exp13 ;
 EMul.       Exp13           ::= Exp13 "*" Exp14 ;
 EDiv.       Exp13           ::= Exp13 "/" Exp14 ;
 CList.      Exp16           ::= "[" Type "]" ;
+CTrue.      Exp16           ::= "T" ;
+CFalse.     Exp16           ::= "F" ;
 EVar.       Exp16           ::= Ident ;
 EInt.       Exp16           ::= Integer ;
-
-BEmpty.     BExp            ::= "empty" Exp ;
-CTrue.      BExp            ::= "T" ;
-CFalse.     BExp            ::= "F" ;
-BComp.      BExp            ::= BExp1 "==" BExp2 ;
-EComp2.     BExp            ::= Exp9 "==" Exp10 ;
-EComp.      BExp            ::= Exp10 "<" Exp11 ;
 
 TInt.       Type            ::= "I" ;
 TBool.      Type            ::= "B" ;
 TList.      Type            ::= "L" Type;
 TFun.       Type            ::= "(" Type "=>" Type ")" ;
-
 TDef.       TDf             ::= Type Ident ;
 
-coercions   BExp 6;
 coercions   Exp 17 ;
 separator   Exp ",";
 separator   Decl "," ;

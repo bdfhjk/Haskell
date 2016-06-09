@@ -29,14 +29,12 @@ data Value = VInt Integer           |
              VExp Exp                       deriving(Show)
 
 evalExp     :: Exp -> Eval Value
-evalBExp    :: BExp -> Eval Value
 evalDecl    :: Decl -> Eval ()
 evalDecls   :: [Decl] -> Eval ()
 evalCall    :: Value -> [Exp] -> Eval Value
 
 -- Helper functions to evaluate simple arithmetic / comparison operations
-liftVIntExp :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
-liftVBoolExp:: (Bool -> Bool -> Bool) -> BExp -> BExp -> Eval Value
+--liftExp :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
 
 -- Declared / real type checking
 matchTV     :: Type -> Value -> Eval ()
@@ -46,15 +44,16 @@ bindVal     :: String -> Value -> Env -> Env
 
 bindVal    = M.insert
 
-liftVIntExp f e1 e2 = do
-  (VInt e1') <- evalExp e1
-  (VInt e2') <- evalExp e2
-  return $ VInt $ f e1' e2'
 
-liftVBoolExp f e1 e2 = do
-  (VBool e1') <- evalBExp e1
-  (VBool e2') <- evalBExp e2
-  return $ VBool $ f e1' e2'
+liftExp f e1 e2 = do
+  e1' <- evalExp e1
+  e2' <- evalExp e2
+  case e1' of
+    (VInt i1) -> case e2' of
+      (VInt i2) -> return $ VInt $ f i1 i2
+      _ -> error "Arithmetic error."
+    _ -> error "Arithmetic error."
+
 
 -- Convert list of function arguments into recursive lambda expression.
 evalDeclWrapLambda (TDef _ (Ident h):t) e =
@@ -68,25 +67,6 @@ evalDecl (DFun (TDef _ (Ident s)) l e) = do
 
 evalDecls = mapM_ evalDecl
 
-evalBExp (CTrue)        = return (VBool True)
-evalBExp (CFalse)       = return (VBool False)
-evalBExp (BComp b1 b2)  = liftVBoolExp (==) b1 b2
-evalBExp (EComp e1 e2)  = do
-  (VInt e1') <- evalExp e1
-  (VInt e2') <- evalExp e2
-  return $ VBool $ e1' < e2'
-
-evalBExp (EComp2 e1 e2) = do
-  (VInt e1') <- evalExp e1
-  (VInt e2') <- evalExp e2
-  return $ VBool $ e1' == e2'
-
-evalBExp (BEmpty e) = do
-  e' <- evalExp e
-  case e' of
-    (VCons 0 _ ) -> return (VBool True)
-    _ -> return (VBool False)
-
 evalExpWrapLambda e =
   case e of
     ELambda (TDef _ (Ident s)) e' -> do
@@ -94,8 +74,41 @@ evalExpWrapLambda e =
       return (VLambda s e'')
     _ -> return (VExp e)
 
+evalExp (CTrue)         = return (VBool True)
+evalExp (CFalse)        = return (VBool False)
+
+evalExp (ECompE e1 e2)  = do
+  e1' <- evalExp e1
+  e2' <- evalExp e2
+  case e1' of
+    (VInt i1) -> case e2' of
+      (VInt i2) -> return $ VBool $ i1 == i2
+      _ -> error "Arithmetic error."
+    (VBool b1) -> case e2' of
+      (VBool b2) -> return $ VBool $ b1 == b2
+      _ -> error "Arithmetic error."
+    _ -> error "Arithmetic error."
+
+evalExp (ECompL e1 e2)  = do
+  e1' <- evalExp e1
+  e2' <- evalExp e2
+  case e1' of
+    (VInt i1) -> case e2' of
+      (VInt i2) -> return $ VBool $ i1 < i2
+      _ -> error "Arithmetic error."
+    (VBool b1) -> case e2' of
+      (VBool b2) -> return $ VBool $ b1 < b2
+      _ -> error "Arithmetic error."
+    _ -> error "Arithmetic error."
+
+evalExp (EEmpty e) = do
+  e' <- evalExp e
+  case e' of
+    (VCons 0 _ ) -> return (VBool True)
+    _ -> return (VBool False)
+
 evalExp (EIf b e1 e2)= do
-  (VBool b') <- evalBExp b
+  (VBool b') <- evalExp b
   if b' then evalExp e1 else evalExp e2
 
 evalExp (CList t) = return (VCons 0 t)
@@ -118,10 +131,10 @@ evalExp (ETail e) = do
     _ -> error "Tail used on a non-list object"
 
 evalExp (EInt v)     = return (VInt v)
-evalExp (EAdd e1 e2) = liftVIntExp (+) e1 e2
-evalExp (ESub e1 e2) = liftVIntExp (-) e1 e2
-evalExp (EMul e1 e2) = liftVIntExp (*) e1 e2
-evalExp (EDiv e1 e2) = liftVIntExp quot e1 e2
+evalExp (EAdd e1 e2) = liftExp (+) e1 e2
+evalExp (ESub e1 e2) = liftExp (-) e1 e2
+evalExp (EMul e1 e2) = liftExp (*) e1 e2
+evalExp (EDiv e1 e2) = liftExp quot e1 e2
 
 evalExp el@(ELambda _ _) = do
   -- Recursively convert ELambdas into VLambdas
