@@ -1,0 +1,1 @@
+-> let (I=>I) a = (lambda I x => x) in call a(5)

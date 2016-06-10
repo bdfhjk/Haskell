@@ -1,4 +1,4 @@
-FN I process(L I k) =
+FN (L I => I) process(L I k) =
   if (empty k)
     then 1
   else (call process (tail k)) + (head k)

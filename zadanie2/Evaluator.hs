@@ -17,7 +17,6 @@ type Env = M.Map String Value
 -- Monad reader -> dynamic state of execution - global definitions
 -- Monad state  -> static environment - local variables
 -- Monad except -> reporting runtime errors
--- Monad writer -> interpreter/debugging logs
 type Eval a = ReaderT Env (StateT Env (ExceptT String IO)) a
 
 data Value = VInt Integer           |
@@ -28,23 +27,20 @@ data Value = VInt Integer           |
              VLambda String Value   |
              VExp Exp                       deriving(Show)
 
-evalExp     :: Exp -> Eval Value
-evalDecl    :: Decl -> Eval ()
-evalDecls   :: [Decl] -> Eval ()
-evalCall    :: Value -> [Exp] -> Eval Value
+evalExp             :: Exp -> Eval Value
+evalExpWrapLambda   :: Exp -> Eval Value
+evalDecl            :: Decl -> Eval ()
+evalDeclWrapLambda  :: [TDf] -> Exp -> Value
+evalDecls           :: [Decl] -> Eval ()
+evalCall            :: Value -> [Exp] -> Eval Value
 
 -- Helper functions to evaluate simple arithmetic / comparison operations
---liftExp :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
-
--- Declared / real type checking
-matchTV     :: Type -> Value -> Eval ()
+liftExp :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
 
 -- Binding value in the local enviroment
 bindVal     :: String -> Value -> Env -> Env
 
 bindVal    = M.insert
-
-
 liftExp f e1 e2 = do
   e1' <- evalExp e1
   e2' <- evalExp e2
@@ -142,19 +138,12 @@ evalExp el@(ELambda _ _) = do
 
   return (VClos M.empty e')
 
-evalExp (ECall e l) = case e of
-    EVar (Ident f) -> do
-      m <- get
-      case M.lookup f m of
-        Just v -> evalCall v l
-        Nothing -> error "Incorrect function call"
-    _ -> do
-      e' <- evalExp e
-      evalCall e' l
+evalExp (ECall e l) = do
+  e' <- evalExp e
+  evalCall e' l
 
-evalExp (ELet (TDef t (Ident s)) e' e) = do
+evalExp (ELet (TDef _ (Ident s)) e' e) = do
     e'' <- evalExp e'
-    matchTV t e''
     local (bindVal s e'') (evalExp e)
 
 evalExp (EVar (Ident s)) = do
@@ -176,14 +165,3 @@ evalCall (VClos env (VLambda s e)) (h:t) = do
   evalCall (VClos (M.insert s h' env) e) t
 
 evalCall _ _ = error "Call on an incorrect object"
-
-matchTV t v =
-  case t of
-    TInt -> case v of
-      VInt _ -> return ()
-      _ -> error "Static type check failed."
-    TBool -> case v of
-      VBool _ -> return ()
-      _ -> error "Static type check failed."
-    TList _ -> return ()
-    TFun _ _ -> return ()

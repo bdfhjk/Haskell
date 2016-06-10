@@ -9,7 +9,7 @@ Lexsyntax.hs : Lexsyntax.x
 Parsyntax.hs : Parsyntax.y
 	happy Parsyntax.y
 
-Interpreter: Lexsyntax.hs Parsyntax.hs Interpreter.hs
+Interpreter: Lexsyntax.hs Parsyntax.hs Interpreter.hs Evaluator.hs Static.hs
 	ghc --make Interpreter
 
 clean:

@@ -10,6 +10,7 @@ import Control.Monad.Trans.Except
 import Control.Monad.State
 import qualified Data.Map as M
 import Evaluator
+import Static
 
 showTree    :: (Show a, Print a) => Int -> a -> IO ()
 putStrV     :: Verbosity -> String -> IO ()
@@ -31,16 +32,31 @@ evalProgr (Progr f e) = do
   evalDecls f
   evalExp e
 
+checkProgr (Progr f e) = do
+--  return TInt
+  checkDecls f
+  checkExp e
+
 run p v = do
-  result <- runExceptT
-           (runStateT
-           (runReaderT (evalProgr p) M.empty) M.empty)
-  case result of
-    Left e -> print e
-    Right (VInt i, _) -> print i
-    _ -> if v>1
-        then putStrV v $ show result
-        else putStrLn "Error: Evaluation not finished due to insufficient arguments"
+  -- Static check
+  resultType <- runExceptT(
+                runStateT(
+                runReaderT(
+                checkProgr p) M.empty) M.empty)
+  case resultType of
+    Right (TInt, _) -> do
+        -- Execution
+        result <- runExceptT(
+                  runStateT(
+                  runReaderT(
+                  evalProgr p) M.empty) M.empty)
+        case result of
+          Left e -> print e
+          Right (VInt i, _) -> print i
+          _ -> if v>1
+              then putStrV v $ show result
+              else putStrLn "Error: Evaluation not finished due to insufficient arguments"
+    _ -> error "Static check failed"
 
 process v p s = let ts = myLexer s in case p ts of
            Bad e    -> do putStrLn "Parse              Failed...\n"

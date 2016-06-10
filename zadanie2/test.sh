@@ -14,6 +14,7 @@
 ./Interpreter good/list_list.ftl        | diff -bsq good/list_list.out -
 ./Interpreter good/let.ftl              | diff -bsq good/let.out - 
 ./Interpreter good/let2.ftl             | diff -bsq good/let2.out - 
+./Interpreter good/let3.ftl             | diff -bsq good/let3.out - 
 ./Interpreter good/papplication.ftl     | diff -bsq good/papplication.out - 
 ./Interpreter good/recursion.ftl        | diff -bsq good/recursion.out - 
 ./Interpreter good/simple.ftl           | diff -bsq good/simple.out - 
