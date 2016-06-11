@@ -1,7 +1,5 @@
 module Static where
-import Lexsyntax
 import Abssyntax
-import ErrM
 import Data.Map as M
 import Control.Monad.Reader
 import Control.Monad.Trans.Except
@@ -15,13 +13,17 @@ type EnvT = M.Map String Type
 -- Monad except -> reporting runtime errors
 type SEval a = ReaderT EnvT (StateT EnvT (ExceptT String IO)) a
 
-checkExp       :: Exp -> SEval Type
-checkDecls     :: [Decl] -> SEval ()
-checkDecl      :: Decl -> SEval ()
---checkDecl    :: Decl -> SEval ()
---checkDecls   :: [Decl] -> SEval ()
---checkCall    :: Type -> [Exp] -> SEval Type
-checkDeclWrapLambda  :: [TDf] -> Exp -> SEval Type
+-- Static check of expressions and declarations
+checkExp              :: Exp -> SEval Type
+checkDecls            :: [Decl] -> SEval ()
+checkDecl             :: Decl -> SEval ()
+checkDeclWrapLambda   :: [TDf] -> Exp -> SEval Type
+checkArithmetic       :: Exp -> Exp -> SEval Type
+checkLogic            :: Exp -> Exp -> SEval Type
+checkList             :: Exp -> SEval Type
+checkCall             :: Type -> [Exp] -> SEval Type
+checkExpWrapLambda    :: Exp -> SEval Type
+
 
 checkArithmetic e1 e2 = do
   t1' <- checkExp e1
@@ -58,7 +60,7 @@ checkDeclWrapLambda (TDef t (Ident s):tl) e = do
   return (TFun t t')
 
 checkDecl (DFun (TDef t (Ident s)) l e) = do
-  t' <- local (M.insert s t) (checkDeclWrapLambda l e)  
+  t' <- local (M.insert s t) (checkDeclWrapLambda l e)
   m  <- get
   if t /= t'
     then error "Static check failed: Invalid function definition."
@@ -86,7 +88,7 @@ checkExp (ECompL e1 e2)   = checkLogic e1 e2
 
 checkExp (EHead e)        = checkList e
 
-checkExp (ETail e)        = checkList e
+checkExp (ETail e)        = checkExp e
 
 checkExp (EEmpty e) = do
   t <- checkExp e
@@ -138,8 +140,6 @@ checkExp el@(ELambda _ _) =
   -- Recursively convert ELambdas into TFuns
   checkExpWrapLambda el
 
--- checkExp _ = error "Not implemented"
-
 checkCall t [] = return t
 
 checkCall (TFun t1 t2) (h:tl) = do
@@ -147,6 +147,8 @@ checkCall (TFun t1 t2) (h:tl) = do
   if t1 /= t'
     then error "Static check failed: Application type mistmatch"
     else checkCall t2 tl
+
+checkCall _ _ = error "Static check failed: Incorrect call usage"
 
 checkExpWrapLambda e =
   case e of

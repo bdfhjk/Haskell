@@ -6,12 +6,15 @@
 ./Interpreter good/function.ftl         | diff -bsq good/function.out - 
 ./Interpreter good/function2.ftl        | diff -bsq good/function2.out - 
 ./Interpreter good/function3.ftl        | diff -bsq good/function3.out - 
+./Interpreter good/function_bool.ftl    | diff -bsq good/function_bool.out - 
+./Interpreter good/fibonacci.ftl        | diff -bsq good/fibonacci.out - 
 ./Interpreter good/highorder.ftl        | diff -bsq good/highorder.out - 
 ./Interpreter good/if.ftl               | diff -bsq good/if.out - 
 ./Interpreter good/lambda.ftl           | diff -bsq good/lambda.out - 
 ./Interpreter good/list.ftl             | diff -bsq good/list.out -
 ./Interpreter good/list_function.ftl    | diff -bsq good/list_function.out -
 ./Interpreter good/list_list.ftl        | diff -bsq good/list_list.out -
+./Interpreter good/list_length.ftl      | diff -bsq good/list_length.out -
 ./Interpreter good/let.ftl              | diff -bsq good/let.out - 
 ./Interpreter good/let2.ftl             | diff -bsq good/let2.out - 
 ./Interpreter good/let3.ftl             | diff -bsq good/let3.out - 

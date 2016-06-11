@@ -7,18 +7,22 @@ import Control.Monad.Trans.Except
 import Control.Monad.State
 import qualified Data.Map as M
 
-
-type ParseFun a = [Token] -> Err a
-type Verbosity = Int
-
--- Environment store local variables
-type Env = M.Map String Value
-
+-- Evaluation monad
 -- Monad reader -> dynamic state of execution - global definitions
 -- Monad state  -> static environment - local variables
 -- Monad except -> reporting runtime errors
 type Eval a = ReaderT Env (StateT Env (ExceptT String IO)) a
 
+-- Parsing function
+type ParseFun a = [Token] -> Err a
+
+-- Define amount of output informations
+type Verbosity = Int
+
+-- Environment store local variables
+type Env = M.Map String Value
+
+-- Possible value types
 data Value = VInt Integer           |
              VBool Bool             |
              VClos Env Value        |
@@ -27,6 +31,7 @@ data Value = VInt Integer           |
              VLambda String Value   |
              VExp Exp                       deriving(Show)
 
+-- Evaluation of different kinds of expressions and delarations
 evalExp             :: Exp -> Eval Value
 evalExpWrapLambda   :: Exp -> Eval Value
 evalDecl            :: Decl -> Eval ()
@@ -37,10 +42,7 @@ evalCall            :: Value -> [Exp] -> Eval Value
 -- Helper functions to evaluate simple arithmetic / comparison operations
 liftExp :: (Integer -> Integer -> Integer) -> Exp -> Exp -> Eval Value
 
--- Binding value in the local enviroment
-bindVal     :: String -> Value -> Env -> Env
-
-bindVal    = M.insert
+-- Execute arithmetic function on integers
 liftExp f e1 e2 = do
   e1' <- evalExp e1
   e2' <- evalExp e2
@@ -49,7 +51,6 @@ liftExp f e1 e2 = do
       (VInt i2) -> return $ VInt $ f i1 i2
       _ -> error "Arithmetic error."
     _ -> error "Arithmetic error."
-
 
 -- Convert list of function arguments into recursive lambda expression.
 evalDeclWrapLambda (TDef _ (Ident h):t) e =
@@ -71,6 +72,7 @@ evalExpWrapLambda e =
     _ -> return (VExp e)
 
 evalExp (CTrue)         = return (VBool True)
+
 evalExp (CFalse)        = return (VBool False)
 
 evalExp (ECompE e1 e2)  = do
@@ -127,9 +129,13 @@ evalExp (ETail e) = do
     _ -> error "Tail used on a non-list object"
 
 evalExp (EInt v)     = return (VInt v)
+
 evalExp (EAdd e1 e2) = liftExp (+) e1 e2
+
 evalExp (ESub e1 e2) = liftExp (-) e1 e2
+
 evalExp (EMul e1 e2) = liftExp (*) e1 e2
+
 evalExp (EDiv e1 e2) = liftExp quot e1 e2
 
 evalExp el@(ELambda _ _) = do
@@ -144,7 +150,7 @@ evalExp (ECall e l) = do
 
 evalExp (ELet (TDef _ (Ident s)) e' e) = do
     e'' <- evalExp e'
-    local (bindVal s e'') (evalExp e)
+    local (M.insert s e'') (evalExp e)
 
 evalExp (EVar (Ident s)) = do
   m  <- ask

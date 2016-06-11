@@ -1,1 +1,1 @@
-FN I a (I x, I x) = x -> call a(5)
+FN (I=>I) a (I x, I x) = x -> call a(5)
