@@ -64,6 +64,7 @@ evalDecl (DFun (TDef _ (Ident s)) l e) = do
 
 evalDecls = mapM_ evalDecl
 
+-- Recursively convert ELambdas into VLambdas
 evalExpWrapLambda e =
   case e of
     ELambda (TDef _ (Ident s)) e' -> do
@@ -75,6 +76,8 @@ evalExp (CTrue)         = return (VBool True)
 
 evalExp (CFalse)        = return (VBool False)
 
+-- Because of weird haskell error, these two functions below
+-- are not compatible for unification.
 evalExp (ECompE e1 e2)  = do
   e1' <- evalExp e1
   e2' <- evalExp e2

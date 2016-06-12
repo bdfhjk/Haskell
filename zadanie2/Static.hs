@@ -5,12 +5,12 @@ import Control.Monad.Reader
 import Control.Monad.Trans.Except
 import Control.Monad.State
 
--- Environment store local variables
+-- Environment store local variables' types
 type EnvT = M.Map String Type
 
--- Monad reader -> dynamic state of execution - global definitions
--- Monad state  -> static environment - local variables
--- Monad except -> reporting runtime errors
+-- Monad reader -> dynamic state of execution - global definitions of types
+-- Monad state  -> static environment - local variables' types
+-- Monad except -> reporting static error
 type SEval a = ReaderT EnvT (StateT EnvT (ExceptT String IO)) a
 
 -- Static check of expressions and declarations
@@ -66,7 +66,7 @@ checkDecl (DFun (TDef t (Ident s)) l e) = do
     then error "Static check failed: Invalid function definition."
     else put (M.insert s t' m)
 
-checkDecls = mapM_ checkDecl
+checkDecls                = mapM_ checkDecl
 
 checkExp (EInt _)         = return TInt
 
